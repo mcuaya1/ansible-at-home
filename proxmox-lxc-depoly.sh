@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #TODO: * Add logic to detect if any container exist
-       * Add flag to specify start range
+#       * Add flag to specify start range
 
 # Before running this script, ensure the specificed template has been downloaded
 # And have at least ONE container created
