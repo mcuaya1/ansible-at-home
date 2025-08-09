@@ -1,15 +1,17 @@
 #!/bin/bash
 
-# TODO: * Add logic to remove local-lvm from cli.
-#        * Note that the following proxmox helper script does inital proxmox configuration but not resizing and deleting local-lvm
-#          https://community-scripts.github.io/ProxmoxVE/scripts?id=post-pve-install        
+# Run proxmox post install script
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/community-scripts/ProxmoxVE/main/tools/pve/post-pve-install.sh)"
+ 
+# Remove local-lvm and resive local
+pvesm remove local-lvm
 
-# Run this script after removing  'local-lvm' in the GUI
-
-lvremove /dev/pve/data
+lvremove -y /dev/pve/data
 
 lvresize -l +100%FREE /dev/pve/root
 
 resize2fs /dev/mapper/pve-root
+
+pvesm set local --content images,iso,vztmpl,backup,rootdir,import
 
 echo "Finished..."
