@@ -1,6 +1,8 @@
 #!/bin/bash
 
 #TODO: * Add logic to detect if any container exist
+# * Fix issues with arch init script
+
 
 lxc_gen()
 {
@@ -25,13 +27,14 @@ lxc_init()
 	echo "Initializing Arch Linux startup script."
 	pct set ${2} --description "User:cyber | Password: ${4}"
 	pct exec ${2} -- bash -c "pacman --disable-sandbox --noconfirm -Syu && \ 
-	    pacman --disable-sandbox --noconfirm -Sy curl ${5} && \
+	    pacman --disable-sandbox --noconfirm -Sy curl openssh fastfetch ${5} && \
 	    mkdir -p /etc/pve/lxc/ && \
+	    echo 'fastfetch' > /etc/profile.d/fastfetch.sh && \
 	    curl -fsSL https://tailscale.com/install.sh | sh && \
 	    tailscale up --auth-key=${3} && \
-	    tailscale set --ssh && \
+	    systemctl start sshd && \
 	    useradd -m cyber && \
-	    echo ${4} | passwd cyber --stdin \
+	    echo ${4} | passwd cyber --stdin && \
 	    passwd -dl root"
      ;;
  esac
@@ -138,10 +141,11 @@ EOF
 
 	pct start ${i}
 	sleep 5
-	lxc_init ${DISTRO} ${i} ${AUTH_KEY} $(openssl rand -base64 6) ${EXTRA} &
+	lxc_init ${DISTRO} ${i} ${AUTH_KEY} $(openssl rand -base64 6) "${EXTRA}" &
 done
 
 wait
 
 reset
+
 echo "Finished."
