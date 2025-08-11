@@ -20,13 +20,14 @@ lxc_gen()
 
 }
 
+
 lxc_init()
 {
  case ${1} in
    "arch")
 	echo "Initializing Arch Linux startup script."
 	pct set ${2} --description "User:cyber | Password: ${4}"
-	pct exec ${2} -- bash -c "pacman --disable-sandbox --noconfirm -Syu && \ 
+	pct exec ${2} -- bash -c "pacman --disable-sandbox --noconfirm -Syu && \
 	    pacman --disable-sandbox --noconfirm -Sy curl openssh fastfetch ${5} && \
 	    mkdir -p /etc/pve/lxc/ && \
 	    echo 'fastfetch' > /etc/profile.d/fastfetch.sh && \
@@ -47,13 +48,14 @@ Help()
    echo
    echo "Syntax: proxmox-lxc-depoly.sh [-n|h|a]"
    echo "options:"
-   echo "n     Number of LXC containers to create."
+   echo "n     Number of LXC containers to create or destoryed."
    echo "t     Template to use when creating container."
-   echo "d     Distro template is based off of. Currently available options are the following:
+   echo "d     Distro template is based off of. Currently available:
    	       arch=Arch Linux 2025"
    echo "e     Extra packages to install. See example below:
                curl wget etc"
    echo "s     Starting range for containers."
+   echo "r     Remove containers. Requires for n to be set."
    echo "h     Print help."
    echo
 }
@@ -63,7 +65,7 @@ Help()
 EXTRA=""
 
 # Get the options
-while getopts ":hn:t:d:e:s:" option; do
+while getopts ":hn:t:d:e:s:r" option; do
    case $option in
       h) # display Help
          Help
@@ -84,6 +86,9 @@ while getopts ":hn:t:d:e:s:" option; do
      s) # starting range
 	 START=$OPTARG
 	 ;;
+     r) # remove container
+	 REMOVE=1
+	 ;;
      \?) # invalid option
          echo "Error: Invalid option"
          exit
@@ -95,6 +100,24 @@ if [[ -z "${NUM}" ]]; then
   echo "Number LXC containers not specified."
   exit 1
 fi
+
+if [[ ${REMOVE}==1 ]]; then
+   echo "Removing containers." 
+   LXC=($(pct list | cut -d " " -f1 | tail -n +2))
+   if [[ $NUM > $(echo ${#LXC[@]}) ]]; then
+	   echo "Invalid range."
+	   exit 1
+   fi
+
+   for (( i=0; i<$NUM; i++)) 
+   do
+	   pct destroy ${LXC[i]} --destroy-unreferenced-disks=1 --purge=1 &
+   done
+   reset
+   echo "Finished."
+   exit 0
+fi
+
 
 if [[ -z "${DISTRO}"  ]]; then
   echo "Distro not specified."
