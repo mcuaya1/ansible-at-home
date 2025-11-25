@@ -12,7 +12,7 @@ resize2fs /dev/mapper/pve-root
 pvesm set local --content images,iso,vztmpl,backup,rootdir,import
 
 # Remove pop up message
-sed -n "0,/.data.status.toLowerCase() !== 'active'/s/.data.status.toLowerCase() !== 'active'/.data.status.toLowerCase() == 'active'/" /usr/share/javascript/proxmox-widget-toolkit/proxmoxlib.js
+sed -i "0,/res.data.status.toLowerCase() !== 'active'/s/res.data.status.toLowerCase() !== 'active'/res.data.status.toLowerCase() == 'active'/" /usr/share/javascript/proxmox-widget-toolkit/proxmoxlib.js
 
 systemctl restart pveproxy.service 
 
