@@ -1,7 +1,4 @@
 #!/bin/bash
-
-# Run proxmox post install script
-bash -c "$(curl -fsSL https://raw.githubusercontent.com/community-scripts/ProxmoxVE/main/tools/pve/post-pve-install.sh)"
  
 # Remove local-lvm and resive local
 pvesm remove local-lvm
@@ -14,4 +11,9 @@ resize2fs /dev/mapper/pve-root
 
 pvesm set local --content images,iso,vztmpl,backup,rootdir,import
 
-echo "Finished..."
+# Remove pop up message
+sed -n "0,/.data.status.toLowerCase() !== 'active'/s/.data.status.toLowerCase() !== 'active'/.data.status.toLowerCase() == 'active'/" /usr/share/javascript/proxmox-widget-toolkit/proxmoxlib.js
+
+systemctl restart pveproxy.service 
+
+echo "Finished."
